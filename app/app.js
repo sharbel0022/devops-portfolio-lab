@@ -45,6 +45,10 @@ app.post("/api/tasks", (req, res) => {
     res.status(201).json(newTask);
 });
 
-app.listen(PORT, () => {
-  console.log(`http://localhost:${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+module.exports = app;
