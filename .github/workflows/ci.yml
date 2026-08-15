@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+
+        env:
+          POSTGRES_USER: nordicbyte
+          POSTGRES_PASSWORD: nordicbyte_test
+          POSTGRES_DB: nordicbyte_test
+
+        ports:
+          - 5432:5432
+
+        options: >-
+          --health-cmd="pg_isready -U nordicbyte -d nordicbyte_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: nordicbyte
+      DB_PASSWORD: nordicbyte_test
+      DB_NAME: nordicbyte_test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Initialize database
+        run: |
+          PGPASSWORD=nordicbyte_test psql \
+            -h localhost \
+            -U nordicbyte \
+            -d nordicbyte_test \
+            -f database/init.sql
+
+      - name: Run tests
+        working-directory: app
+        run: npm test
