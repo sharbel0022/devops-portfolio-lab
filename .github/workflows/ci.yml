@@ -74,4 +74,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t nordicbyte-api:${{ github.sha }} ./app
+        run: docker build -f app/Dockerfile -t nordicbyte-api:${{ github.sha }} app
