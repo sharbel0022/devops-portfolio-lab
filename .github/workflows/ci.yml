@@ -64,3 +64,14 @@ jobs:
       - name: Run tests
         working-directory: app
         run: npm test
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -f app/Dockerfile -t nordicbyte-api:${{ github.sha }} app
