@@ -1,6 +1,10 @@
 const request = require("supertest");
 const app = require("./app");
 
+afterAll(async () => {
+    await app.locals.pool.end();
+});
+
 describe("NordicByte API", () => {
     test("GET /health should return healthy status", async () => {
         const response = await request(app).get("/health");

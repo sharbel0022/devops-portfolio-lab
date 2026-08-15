@@ -1,5 +1,4 @@
 services:
-
   db:
     image: postgres:17-alpine
 
@@ -10,6 +9,7 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]

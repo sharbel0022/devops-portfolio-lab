@@ -14,18 +14,9 @@ const pool = new Pool({
     database: process.env.DB_NAME || "nordicbyte"
 });
 
-const tasks = [
-    {
-        id: 1,
-        title: "Learn Git",
-        completed: true
-    },
-    {
-        id: 2,
-        title: "Learn Docker",
-        completed: false
-    }
-];
+
+app.locals.pool = pool;
+
 
 app.get("/", (req, res) => {
     res.send("NordicByte DevOps Platform");
@@ -54,22 +45,38 @@ app.get("/db-health", async (req, res) => {
     }
 });
 
-app.get("/api/tasks", (req, res) => {
-    res.json(tasks);
+app.get("/api/tasks", async (req, res) => {
+    try {
+        const result = await pool.query(
+            "SELECT id, title, completed FROM tasks ORDER BY id"
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({
+            error: "Failed to fetch tasks"
+        });
+    }
 });
 
-app.post("/api/tasks", (req, res) => {
-    const newTask = {
-        id: tasks.length + 1,
-        title: req.body.title,
-        completed: false
-    };
+app.post("/api/tasks", async (req, res) => {
+    try {
+        const { title } = req.body;
 
-    tasks.push(newTask);
+        const result = await pool.query(
+            `INSERT INTO tasks (title, completed)
+             VALUES ($1, FALSE)
+             RETURNING id, title, completed`,
+            [title]
+        );
 
-    res.status(201).json(newTask);
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        res.status(500).json({
+            error: "Failed to create task"
+        });
+    }
 });
-
 if (require.main === module) {
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
